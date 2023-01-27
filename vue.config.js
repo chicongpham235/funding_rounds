@@ -4,6 +4,6 @@ module.exports = defineConfig({
   productionSourceMap: false,
   publicPath:
     process.env.NODE_ENV === "production"
-      ? "/funding-rounds/" // Thay tên repository
+      ? "/dashboard2/" // Thay tên repository
       : "/",
 });
