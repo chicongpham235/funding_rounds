@@ -15,7 +15,7 @@
     <HighChart
       id="fundraising-rounds-by-stage"
       :options="options"
-      height="600px"
+      height="556px"
       ref="highchart"
     />
   </BlockChart>
@@ -41,7 +41,7 @@ var pieColors = (function () {
     colors.push(
       highcharts
         .color(base.colors[i - 10])
-        .brighten((i - 5) / 25)
+        .brighten((i - 5) / 35)
         .get()
     );
   }
@@ -284,6 +284,22 @@ export default {
           },
         },
         series: this.seriesOptions,
+        responsive: {
+          rules: [
+            {
+              condition: {
+                maxWidth: 600,
+              },
+              chartOptions: {
+                plotOptions: {
+                  pie: {
+                    innerSize: "70%",
+                  },
+                },
+              },
+            },
+          ],
+        },
       };
     },
   },
@@ -316,8 +332,8 @@ export default {
         time = new Date(Date.UTC(now.year(), 0, 1, 0, 0, 0)).getTime();
       if (this.time == "all") time = new Date(time).getTime();
       let data = res_data.filter((v) => !(v.date < time));
-      data.map((v) => ({ ...v, investors: "" }));
-      data.map((v) => {
+      data = data.map((v) => ({ ...v, investors: "" }));
+      data = data.map((v) => {
         let investors = [];
         investors = investors.concat(v.leadInvestors);
         investors = investors.concat(v.otherInvestors);
@@ -332,7 +348,7 @@ export default {
         { name: "FTX", amount: 0 },
         { name: "Sequoia Capital", amount: 0 },
         { name: "Animoca Brands", amount: 0 },
-        // { name: "KIRKBI", amount: 0 },
+        { name: "KIRKBI", amount: 0 },
         { name: "Sony", amount: 0 },
         { name: "SoftBank", amount: 0 },
         { name: "Lightspeed Venture", amount: 0 },
@@ -342,7 +358,7 @@ export default {
         { name: "Coatue", amount: 0 },
         { name: "Republic", amount: 0 },
         { name: "Dragonfly Capital", amount: 0 },
-        // { name: "Digital Currency", amount: 0 },
+        { name: "Digital Currency", amount: 0 },
         { name: "Seven Seven Six", amount: 0 },
         { name: "Jump Crypto", amount: 0 },
       ];

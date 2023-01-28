@@ -7,10 +7,15 @@
     </div>
     <div class="grid grid-cols-12 gap-4 mb-4">
       <div class="xl:col-span-6 lg:col-span-6 md:col-span-12">
-        <div class="h-[600px]"></div>
+        <div class="h-[300px]"></div>
       </div>
       <div class="xl:col-span-6 lg:col-span-6 md:col-span-12">
         <FundingAmountByInvestor :api_res_data="res_data" />
+      </div>
+    </div>
+    <div class="grid grid-cols-12 gap-4 mb-4">
+      <div class="col-span-12">
+        <FundingRoundsByInvestorAndCategory :api_res_data="res_data" />
       </div>
     </div>
   </div>
@@ -19,10 +24,12 @@
 import { FUNDING_API } from "@/services/api";
 import FundingRoundsByInvestor from "./FundingRoundsByInvestor.vue";
 import FundingAmountByInvestor from "./FundingAmountByInvestor.vue";
+import FundingRoundsByInvestorAndCategory from "./FundingRoundsByInvestorAndCategory.vue";
 export default {
   components: {
     FundingRoundsByInvestor,
     FundingAmountByInvestor,
+    FundingRoundsByInvestorAndCategory,
   },
   name: "dash-board",
   data: () => ({

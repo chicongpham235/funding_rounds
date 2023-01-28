@@ -12,7 +12,6 @@
 <script>
 import BlockChart from "@/components/BlockChart.vue";
 import HighChart from "@/components/HighChart.vue";
-import axios from "axios";
 let highcharts = require("highcharts");
 require("highcharts/highcharts-more")(highcharts);
 require("highcharts/modules/accessibility")(highcharts);
@@ -39,13 +38,6 @@ export default {
     api_res_data: {
       handler() {
         this.init();
-      },
-    },
-    time: {
-      async handler() {
-        this.loading = true;
-        await this.setDataChart();
-        this.loading = false;
       },
     },
   },
@@ -110,7 +102,7 @@ export default {
           hideDelay: 0,
           formatter: function () {
             return `<div class="border border-white rounded p-2">
-                <div class="text-white font-normal mb-1">${this.key}</div>
+                <div class="text-white font-semibold mb-1">${this.key}</div>
                 <div class="text-gray-500">Number of funding rounds: <b class="text-white font-semibold">${this.y}</b></div>
                 </div>`;
           },
@@ -172,7 +164,7 @@ export default {
         ],
         [
           "Spartan Group",
-          investorsArr.filter((x) => x.includes("The Spartan Group")).length,
+          investorsArr.filter((x) => x.includes("Spartan Group")).length,
         ],
         [
           "Dragonfly Capital",
