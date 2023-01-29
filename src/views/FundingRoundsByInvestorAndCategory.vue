@@ -32,7 +32,7 @@ export default {
     web3: {
       name: "Web3",
       data: [],
-      color: "#7c7cf4",
+      color: "rgb(97, 100, 255)",
     },
     nfts: {
       name: "NFTs",
@@ -52,7 +52,7 @@ export default {
     infrastructure: {
       name: "Infrastructure",
       data: [],
-      color: "#aecbfa",
+      color: "rgb(145, 232, 225)",
     },
     seriesOptions: [],
     loading: true,

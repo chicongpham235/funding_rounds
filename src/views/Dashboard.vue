@@ -7,7 +7,7 @@
     </div>
     <div class="grid grid-cols-12 gap-4 mb-4">
       <div class="xl:col-span-6 lg:col-span-6 md:col-span-12">
-        <div class="h-[300px]"></div>
+        <VCMoneyInvestedAndBTCPrice :api_res_data="res_data" />
       </div>
       <div class="xl:col-span-6 lg:col-span-6 md:col-span-12">
         <FundingAmountByInvestor :api_res_data="res_data" />
@@ -31,12 +31,14 @@ import FundingRoundsByInvestor from "./FundingRoundsByInvestor.vue";
 import FundingAmountByInvestor from "./FundingAmountByInvestor.vue";
 import FundingRoundsByInvestorAndCategory from "./FundingRoundsByInvestorAndCategory.vue";
 import MostActiveFunds from "./MostActiveFunds.vue";
+import VCMoneyInvestedAndBTCPrice from "./VCMoneyInvestedAndBTCPrice.vue";
 export default {
   components: {
     FundingRoundsByInvestor,
     FundingAmountByInvestor,
     FundingRoundsByInvestorAndCategory,
     MostActiveFunds,
+    VCMoneyInvestedAndBTCPrice,
   },
   name: "dash-board",
   data: () => ({
