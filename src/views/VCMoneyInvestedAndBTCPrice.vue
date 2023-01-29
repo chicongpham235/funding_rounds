@@ -58,7 +58,7 @@ export default {
     functionFireChart: null,
     yCategories: [],
     seriesOptions: [],
-    legendX: 0,
+    legendX: -20,
     legendY: -10,
     verticalAlign: "top",
     tickInterval: 1 * 30 * 24 * 3600 * 1000,
@@ -165,6 +165,7 @@ export default {
             color: "#fff",
             fontWeight: "bold",
           },
+          itemMarginBottom: 16,
         },
         tooltip: {
           useHTML: true,
@@ -229,7 +230,7 @@ export default {
         borderWidth: 0,
       };
       let btc = {
-        name: "BTC Price",
+        name: "BTCUSDT",
         data: [],
         type: "spline",
         color: "#f2ba2a",
@@ -239,7 +240,6 @@ export default {
         },
         enableMouseTracking: false,
       };
-      this.seriesOptions = [amount, btc];
       try {
         this.loading = true;
         await this.fetchBTCData();
@@ -348,7 +348,7 @@ export default {
         borderWidth: 0,
       };
       let btc = {
-        name: "BTC Price",
+        name: "BTCUSDT",
         data: [],
         type: "spline",
         // lineWidth: 1,
