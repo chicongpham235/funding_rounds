@@ -4,6 +4,7 @@
 <script>
 var HighchartStock = require("highcharts/highstock");
 require("highcharts/modules/map")(HighchartStock);
+require("highcharts/highcharts-more")(HighchartStock);
 var Highcharts = require("highcharts");
 require("highcharts/modules/heatmap")(Highcharts);
 require("highcharts/modules/exporting")(Highcharts);
