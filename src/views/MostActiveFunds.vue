@@ -23,7 +23,7 @@ var pieColors = [
   "rgb(255, 164, 200)",
   "rgb(145, 232, 225)",
   "rgb(124, 181, 236)",
-  "#7c7cf4",
+  "rgb(97, 100, 255)",
   "rgb(255, 221, 150)",
   "purple",
   "rgb(247, 163, 92)",
@@ -323,7 +323,7 @@ export default {
         );
       });
       data = data.map(({ investor, ...rest }) => ({ ...rest }));
-      this.endDate = data[data.length - 1].time;
+      this.endDate = data[data.length - 1].time + 15 * 24 * 3600 * 1000;
       let time = moment(this.endDate);
       this.startDate = new Date(
         Date.UTC(time.year(), time.month() - 6, time.date(), 0, 0, 0)
@@ -390,12 +390,14 @@ export default {
           ];
       });
       spartan_group.data = spartan_group.data.filter((x) => x);
-      // spartan_group.data.push([
-      //   data[data.length - 1].time,
-      //   null,
-      //   null,
-      // ]);
-      console.log(spartan_group.data);
+
+      //trick to display last label
+      spartan_group.data.push([
+        data[data.length - 1].time + 15 * 24 * 3600 * 1000,
+        null,
+        null,
+      ]);
+
       animoca_brands.data = data.map((v) => {
         let index = v.investorDeals.findIndex((x) =>
           x.name.includes("Animoca Brands")
