@@ -18,6 +18,11 @@
         <FundingRoundsByInvestorAndCategory :api_res_data="res_data" />
       </div>
     </div>
+    <div class="grid grid-cols-12 gap-4 mb-4">
+      <div class="col-span-12">
+        <MostActiveFunds :api_res_data="res_data" />
+      </div>
+    </div>
   </div>
 </template>
 <script>
@@ -25,11 +30,13 @@ import { FUNDING_API } from "@/services/api";
 import FundingRoundsByInvestor from "./FundingRoundsByInvestor.vue";
 import FundingAmountByInvestor from "./FundingAmountByInvestor.vue";
 import FundingRoundsByInvestorAndCategory from "./FundingRoundsByInvestorAndCategory.vue";
+import MostActiveFunds from "./MostActiveFunds.vue";
 export default {
   components: {
     FundingRoundsByInvestor,
     FundingAmountByInvestor,
     FundingRoundsByInvestorAndCategory,
+    MostActiveFunds,
   },
   name: "dash-board",
   data: () => ({

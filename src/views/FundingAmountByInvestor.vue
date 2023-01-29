@@ -13,7 +13,7 @@
       </div>
     </template>
     <HighChart
-      id="fundraising-rounds-by-stage"
+      id="funding-amount-by-investor"
       :options="options"
       height="556px"
       ref="highchart"

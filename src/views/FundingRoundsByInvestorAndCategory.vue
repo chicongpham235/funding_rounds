@@ -4,7 +4,7 @@
     :loading="loading"
   >
     <HighChart
-      id="fundraising-by-category"
+      id="funding-rounds-by-investor-and-category"
       :options="options"
       height="600px"
       ref="highchart"
@@ -56,7 +56,7 @@ export default {
     },
     seriesOptions: [],
     loading: true,
-    legendX: 0,
+    legendX: 140,
     legendY: 0,
     verticalAlign: "top",
     maxTotal: null,
@@ -135,6 +135,7 @@ export default {
         legend: {
           enabled: true,
           reversed: true,
+          floating: true,
           align: "left",
           verticalAlign: this.verticalAlign,
           x: this.legendX,
@@ -180,7 +181,7 @@ export default {
         },
         plotOptions: {
           column: {
-            maxPointWidth: 20,
+            maxPointWidth: 50,
             stacking: "normal",
             states: {
               inactive: {

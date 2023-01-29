@@ -1,7 +1,7 @@
 <template>
   <BlockChart title="Number of funding rounds by Investor" :loading="loading">
     <HighChart
-      id="crypto-fundraising-trend"
+      id="funding-rounds-by-investor"
       :options="options"
       height="556px"
       ref="highchart"
@@ -30,9 +30,6 @@ export default {
     loading: true,
     functionFireChart: null,
     seriesOptions: [],
-    legendX: 0,
-    legendY: -30,
-    verticalAlign: "top",
   }),
   watch: {
     api_res_data: {
@@ -60,7 +57,7 @@ export default {
             style: {
               color: "#ffffff",
               fontSize: 12,
-              fontFamily: "'Rubik' sans-serif",
+              fontFamily: "'Rubik', sans-serif",
               textShadow: false,
               fontWeight: "normal",
               pointerEvents: "none",
