@@ -209,7 +209,11 @@ export default {
             if (vm.time == "weekly") {
               // time = "Week " + time.week() + ", " + time.year();
               let startWeek = time.startOf("week").format("DD, MMM, YYYY");
-              let endWeek = time.endOf("week").format("DD, MMM, YYYY");
+              let endWeek = time.endOf("week");
+              let now = new Date().getTime();
+              if (endWeek.unix() * 1000 > now)
+                endWeek = moment(now).format("DD, MMM, YYYY");
+              else endWeek = endWeek.format("DD, MMM, YYYY");
               time = startWeek + " - " + endWeek;
             }
             if (vm.time == "monthly") time = time.format("MMM, YYYY");
@@ -219,21 +223,14 @@ export default {
                 (getQuarterFromMonth(time.month()) + 1) +
                 ", " +
                 time.year();
-            let content1 = `<div class="text-gray-500 font-semibold">${time}</div>
-            <div><span style="color:${this.series.color}">${this.series.name}</span>: `;
-            let content2 = null;
-            if (this.low) {
-              content2 = `<span class="font-semibold">$${handlerPrice(
-                this.low,
-                2
-              )} - $${handlerPrice(this.high, 2)}</span></div>`;
-            } else {
-              content2 = `<span class="font-semibold">$${handlerPrice(
-                this.y,
-                2
-              )}</span></div>`;
-            }
-            return content1 + content2;
+            let content = `<div class="text-gray-500 font-semibold">${time}</div>
+            <div><span style="color:${this.series.color}">${
+              this.series.name
+            }</span>: <span class="font-semibold">$${handlerPrice(
+              this.y,
+              2
+            )}</span></div>`;
+            return content;
           },
         },
         plotOptions: {
@@ -272,7 +269,7 @@ export default {
       let btc = {
         name: "BTC Price",
         data: [],
-        type: "arearange",
+        type: "spline",
         color: "#f2ba2a",
         yAxis: 1,
         marker: {
@@ -367,7 +364,6 @@ export default {
           accumulator[time] = {
             time: time,
             btc_price: null,
-            btc_low: null,
           };
           result.push([accumulator[time]]);
         }
@@ -376,12 +372,6 @@ export default {
         else {
           if (accumulator[time].btc_price < Number(currentValue.high))
             accumulator[time].btc_price = Number(currentValue.high);
-        }
-        if (!accumulator[time].btc_low)
-          accumulator[time].btc_low = Number(currentValue.low);
-        else {
-          if (accumulator[time].btc_low > Number(currentValue.low))
-            accumulator[time].btc_low = Number(currentValue.low);
         }
         return accumulator;
       }, {});
@@ -410,7 +400,7 @@ export default {
       let btc = {
         name: "BTC Price",
         data: [],
-        type: "arearange",
+        type: "spline",
         // lineWidth: 1,
         color: "#f2ba2a",
         yAxis: 1,
@@ -428,7 +418,6 @@ export default {
         );
         if (index != -1) {
           this.vc_money_invested[index].btc_price = item.btc_price;
-          this.vc_money_invested[index].btc_low = item.btc_low;
         }
       });
 
@@ -436,7 +425,7 @@ export default {
         return [v.time, v.amount * 1000000];
       });
       btc.data = this.btc.map((v) => {
-        return [v.time, v.btc_low, v.btc_price];
+        return [v.time, v.btc_price];
       });
       this.seriesOptions = [amount, btc];
       if (this.time == "weekly") {

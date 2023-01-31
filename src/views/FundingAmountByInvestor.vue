@@ -205,9 +205,10 @@ export default {
             let result = `<div class="border border-white rounded p-2">
                 <div style="color: ${this.color}">${
               this.key
-            }: <span class="text-white font-semibold mr-2">${
-              this.y
-            }</span><span class="text-gray-500 mr-2">
+            }: <span class="text-white font-semibold mr-2">$${handlerPrice(
+              this.y,
+              2
+            )}</span><span class="text-gray-500 mr-2">
               (${roundValue(this.percentage, 2)}%)
             </span></div>
                 </div>`;
@@ -381,14 +382,19 @@ export default {
         { name: "Seven Seven Six", amount: 0 },
         { name: "Jump Crypto", amount: 0 },
       ];
-      this.total = 0;
+      let total = 0;
       investorsArr.forEach((item) => {
         data.forEach((x) => {
           if (x.investors.includes(item.name)) item.amount += x.amount;
         });
         item.amount = roundValue(item.amount * 1000000);
+        total += item.amount;
+      });
+      this.total = 0;
+      data.forEach((item) => {
         this.total += item.amount;
       });
+      this.total = roundValue(this.total * 1000000);
       let dataSeries = [];
       let i = 0;
       investorsArr.forEach((element) => {
@@ -400,11 +406,15 @@ export default {
         i++;
       });
       dataSeries = dataSeries.sort((a, b) => b.y - a.y);
-      dataSeries.push({ name: "Others", y: 0, color: "rgb(209 213 219)" });
-      let index = dataSeries.findIndex((x) => x.name == "Others");
+      dataSeries.push({
+        name: "Others",
+        y: this.total - total,
+        color: "rgb(209 213 219)",
+      });
+      let indexOthers = dataSeries.findIndex((x) => x.name == "Others");
       dataSeries.forEach((x) => {
         if (x.y / this.total <= 0.02 && x.name != "Others") {
-          dataSeries[index].y += x.y;
+          dataSeries[indexOthers].y += x.y;
         }
       });
       dataSeries = dataSeries.filter(
