@@ -365,7 +365,7 @@ export default {
         { name: "Paradigm", amount: 0 },
         { name: "Tiger Global", amount: 0 },
         { name: "Coinbase Venture", amount: 0 },
-        { name: "FTX", amount: 0 },
+        { name: "FTX Ventures", amount: 0 },
         { name: "Sequoia Capital", amount: 0 },
         { name: "Animoca Brands", amount: 0 },
         { name: "KIRKBI", amount: 0 },

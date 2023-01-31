@@ -259,6 +259,7 @@ export default {
           investorsArr.filter((x) => x.includes("LD Capital")).length,
         ],
       ];
+      dataSeries = dataSeries.filter((x) => x[1] != 0);
       dataSeries = dataSeries.sort((a, b) => b[1] - a[1]);
       this.seriesOptions = [
         {
