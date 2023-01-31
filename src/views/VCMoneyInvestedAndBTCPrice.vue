@@ -315,9 +315,6 @@ export default {
         let time = null;
         if (vm.time == "weekly") {
           time = timestamp.startOf("week").unix() * 1000 + 7 * 3600 * 1000;
-          console.log(
-            moment(new Date(2022, 0, 3, 7, 0, 0).getTime()).startOf("week")
-          );
         }
         if (vm.time == "monthly") {
           time = new Date(
