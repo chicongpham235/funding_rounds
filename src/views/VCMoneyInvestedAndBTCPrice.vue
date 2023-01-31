@@ -32,6 +32,8 @@ import HighChart from "@/components/HighChart.vue";
 import TimeFrame from "@/components/TimeFrame.vue";
 let highchartStock = require("highcharts/highstock");
 require("highcharts/highcharts-more")(highchartStock);
+// highchartStock.seriesTypes.arearange.prototype.drawLegendSymbol =
+//   highchartStock.seriesTypes.line.prototype.drawLegendSymbol;
 moment.updateLocale("en", {
   week: {
     dow: 1, // First day of week is Monday
