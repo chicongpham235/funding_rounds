@@ -2,6 +2,7 @@
   <div :id="idChart" :class="['w-full']" :style="{ height }"></div>
 </template>
 <script>
+import moment from "moment";
 var HighchartStock = require("highcharts/highstock");
 require("highcharts/modules/map")(HighchartStock);
 require("highcharts/highcharts-more")(HighchartStock);
@@ -18,6 +19,11 @@ HighchartStock.dateFormats = {
     var date = new Date(timestamp),
       quarter = Math.floor(date.getUTCMonth() / 3) + 1;
     return quarter;
+  },
+  w: function (timestamp) {
+    var date = moment(timestamp),
+      week = date.week();
+    return week;
   },
 };
 

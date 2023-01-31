@@ -52,6 +52,9 @@ export default {
     tickInterval: 30 * 24 * 3600 * 1000,
     startDate: null,
     endDate: null,
+    buttonPositionX: 0,
+    buttonPositionY: -8,
+    buttonPositionAlign: "right",
   }),
   watch: {
     api_res_data: {
@@ -141,9 +144,9 @@ export default {
             fontWeight: "normal",
           },
           buttonPosition: {
-            align: "left",
-            x: 0,
-            y: 0,
+            align: this.buttonPositionAlign,
+            x: this.buttonPositionX,
+            y: this.buttonPositionY,
           },
         },
         title: {
@@ -171,6 +174,9 @@ export default {
           },
           title: {
             text: "Number of Deals",
+            style: {
+              fontWeight: 600,
+            },
           },
           opposite: false,
           showLastLabel: true,
@@ -317,7 +323,7 @@ export default {
             v.name.includes("LD Capital") ||
             v.name.includes("Infinity Ventures") ||
             v.name.includes("Hashed") ||
-            v.name.includes("Andreessen Horowitz") ||
+            v.name.includes("a16z") ||
             v.name.includes("Shima Capital") ||
             v.name.includes("Hashkey Capital")
         );
@@ -363,8 +369,8 @@ export default {
         data: [],
         color: pieColors[6],
       };
-      let andreessen_horowitz = {
-        name: "Andreessen Horowitz",
+      let a16z = {
+        name: "a16z",
         data: [],
         color: pieColors[7],
       };
@@ -474,10 +480,8 @@ export default {
       });
       hashed.data = hashed.data.filter((x) => x);
 
-      andreessen_horowitz.data = data.map((v) => {
-        let index = v.investorDeals.findIndex((x) =>
-          x.name.includes("Andreessen Horowitz")
-        );
+      a16z.data = data.map((v) => {
+        let index = v.investorDeals.findIndex((x) => x.name.includes("a16z"));
         if (index != -1)
           return [
             v.time,
@@ -485,7 +489,7 @@ export default {
             v.investorDeals[index].deals,
           ];
       });
-      andreessen_horowitz.data = andreessen_horowitz.data.filter((x) => x);
+      a16z.data = a16z.data.filter((x) => x);
 
       shima_capital.data = data.map((v) => {
         let index = v.investorDeals.findIndex((x) =>
@@ -520,7 +524,7 @@ export default {
         ld_capital,
         infinity_ventures,
         hashed,
-        andreessen_horowitz,
+        a16z,
         shima_capital,
         hashkey_capital,
       ];

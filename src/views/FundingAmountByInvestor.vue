@@ -5,8 +5,9 @@
         <h2 class="text-white font-bold text-[20px]">
           Funding Amount By Investor
           <TimeFrame
-            class="absolute top-[42px] right-0 z-[1]"
+            class="absolute top-[42px] right-0 z-[3]"
             :time_frame="time_frame"
+            :time_fetch="time"
             @set_time_frame="(v) => (time = v)"
           />
         </h2>
@@ -15,7 +16,7 @@
     <HighChart
       id="funding-amount-by-investor"
       :options="options"
-      height="556px"
+      height="500px"
       ref="highchart"
     />
   </BlockChart>
@@ -59,8 +60,8 @@ export default {
   },
   data: () => ({
     data: [],
-    time_frame: ["1y", "2y", "YTD", "All"],
-    time: "1y",
+    time_frame: ["7d", "1m", "3m", "6m", "1y", "2y", "YTD", "All"],
+    time: "all",
     seriesOptions: [],
     loading: true,
     legendX: 110,
@@ -91,8 +92,10 @@ export default {
       },
     },
     time: {
-      handler() {
-        this.fetchData();
+      async handler() {
+        this.loading = true;
+        await this.fetchData();
+        this.loading = false;
       },
     },
   },
@@ -320,6 +323,22 @@ export default {
       const res_data = this.api_res_data;
       let now = moment(new Date().getTime());
       let time = null;
+      if (this.time == "7d")
+        time = new Date(
+          Date.UTC(now.year(), now.month(), now.date() - 7, 0, 0, 0)
+        ).getTime();
+      if (this.time == "1m")
+        time = new Date(
+          Date.UTC(now.year(), now.month() - 1, now.date(), 0, 0, 0)
+        ).getTime();
+      if (this.time == "3m")
+        time = new Date(
+          Date.UTC(now.year(), now.month() - 3, now.date(), 0, 0, 0)
+        ).getTime();
+      if (this.time == "6m")
+        time = new Date(
+          Date.UTC(now.year(), now.month() - 6, now.date(), 0, 0, 0)
+        ).getTime();
       if (this.time == "1y")
         time = new Date(
           Date.UTC(now.year() - 1, now.month(), now.date(), 0, 0, 0)
@@ -389,7 +408,7 @@ export default {
         }
       });
       dataSeries = dataSeries.filter(
-        (x) => x.y / this.total > 0.02 || x.name == "Others"
+        (x) => x.y / this.total > 0.02 || (x.name == "Others" && x.y > 0)
       );
       this.seriesOptions = [
         {

@@ -1,17 +1,32 @@
 <template>
-  <BlockChart title="Number of funding rounds by Investor" :loading="loading">
+  <BlockChart :loading="loading">
+    <template #title>
+      <div class="w-full">
+        <h2 class="text-white font-bold text-[20px]">
+          Number of Funding rounds by Investor
+          <TimeFrame
+            class="mt-1"
+            :time_frame="time_frame"
+            :time_fetch="time"
+            @set_time_frame="(v) => (time = v)"
+          />
+        </h2>
+      </div>
+    </template>
     <HighChart
       id="funding-rounds-by-investor"
       :options="options"
-      height="556px"
+      height="470px"
       ref="highchart"
     />
   </BlockChart>
 </template>
 
 <script>
+import moment from "moment";
 import BlockChart from "@/components/BlockChart.vue";
 import HighChart from "@/components/HighChart.vue";
+import TimeFrame from "@/components/TimeFrame.vue";
 let highcharts = require("highcharts");
 require("highcharts/highcharts-more")(highcharts);
 require("highcharts/modules/accessibility")(highcharts);
@@ -21,6 +36,7 @@ export default {
   components: {
     BlockChart,
     HighChart,
+    TimeFrame,
   },
   props: {
     api_res_data: { type: Array },
@@ -30,11 +46,20 @@ export default {
     loading: true,
     functionFireChart: null,
     seriesOptions: [],
+    time_frame: ["1m", "3m", "6m", "1y", "2y", "YTD", "All"],
+    time: "all",
   }),
   watch: {
     api_res_data: {
       handler() {
         this.init();
+      },
+    },
+    time: {
+      async handler() {
+        this.loading = true;
+        await this.setDataChart();
+        this.loading = false;
       },
     },
   },
@@ -135,6 +160,32 @@ export default {
 
     async setDataChart() {
       let data = this.data.filter((x) => x.round);
+      let now = moment(new Date().getTime());
+      let time = null;
+      if (this.time == "1m")
+        time = new Date(
+          Date.UTC(now.year(), now.month() - 1, now.date(), 0, 0, 0)
+        ).getTime();
+      if (this.time == "3m")
+        time = new Date(
+          Date.UTC(now.year(), now.month() - 3, now.date(), 0, 0, 0)
+        ).getTime();
+      if (this.time == "6m")
+        time = new Date(
+          Date.UTC(now.year(), now.month() - 6, now.date(), 0, 0, 0)
+        ).getTime();
+      if (this.time == "1y")
+        time = new Date(
+          Date.UTC(now.year() - 1, now.month(), now.date(), 0, 0, 0)
+        ).getTime();
+      if (this.time == "2y")
+        time = new Date(
+          Date.UTC(now.year() - 2, now.month(), now.date(), 0, 0, 0)
+        ).getTime();
+      if (this.time == "ytd")
+        time = new Date(Date.UTC(now.year(), 0, 1, 0, 0, 0)).getTime();
+      if (this.time == "all") time = new Date(time).getTime();
+      data = data.filter((v) => !(v.date < time));
       let investorsArr = [];
       for (const d of data) {
         investorsArr = investorsArr
@@ -167,10 +218,7 @@ export default {
           "Dragonfly Capital",
           investorsArr.filter((x) => x.includes("Dragonfly Capital")).length,
         ],
-        [
-          "Andreessen Horowitz",
-          investorsArr.filter((x) => x.includes("Andreessen Horowitz")).length,
-        ],
+        ["a16z", investorsArr.filter((x) => x.includes("a16z")).length],
         [
           "Solana Ventures",
           investorsArr.filter((x) => x.includes("Solana Ventures")).length,
@@ -193,7 +241,10 @@ export default {
           "Balaji Srinivasan",
           investorsArr.filter((x) => x.includes("Balaji Srinivasan")).length,
         ],
-        ["FTX", investorsArr.filter((x) => x.includes("FTX")).length],
+        [
+          "FTX Ventures",
+          investorsArr.filter((x) => x.includes("FTX Ventures")).length,
+        ],
         [
           "Hashkey Capital",
           investorsArr.filter((x) => x.includes("Hashkey Capital")).length,

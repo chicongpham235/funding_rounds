@@ -2,12 +2,12 @@
   <div class="bg-[#16151a] w-full">
     <div class="grid grid-cols-12 gap-4 mb-4">
       <div class="col-span-12">
-        <FundingRoundsByInvestor :api_res_data="res_data" />
+        <VCMoneyInvestedAndBTCPrice :api_res_data="res_data" />
       </div>
     </div>
     <div class="grid grid-cols-12 gap-4 mb-4">
       <div class="xl:col-span-6 lg:col-span-6 md:col-span-12">
-        <VCMoneyInvestedAndBTCPrice :api_res_data="res_data" />
+        <FundingRoundsByInvestor :api_res_data="res_data" />
       </div>
       <div class="xl:col-span-6 lg:col-span-6 md:col-span-12">
         <FundingAmountByInvestor :api_res_data="res_data" />

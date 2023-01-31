@@ -1,8 +1,18 @@
 <template>
-  <BlockChart
-    title="Number of funding rounds by Investor and Category"
-    :loading="loading"
-  >
+  <BlockChart :loading="loading">
+    <template #title>
+      <div class="w-full">
+        <h2 class="text-white font-bold text-[20px]">
+          Number of funding rounds by Investor and Category
+          <TimeFrame
+            class="absolute top-[11px] right-0 z-[1]"
+            :time_frame="time_frame"
+            :time_fetch="time"
+            @set_time_frame="(v) => (time = v)"
+          />
+        </h2>
+      </div>
+    </template>
     <HighChart
       id="funding-rounds-by-investor-and-category"
       :options="options"
@@ -13,8 +23,10 @@
 </template>
 
 <script>
+import moment from "moment";
 import BlockChart from "@/components/BlockChart.vue";
 import HighChart from "@/components/HighChart.vue";
+import TimeFrame from "@/components/TimeFrame.vue";
 let highcharts = require("highcharts");
 require("highcharts/highcharts-more")(highcharts);
 require("highcharts/modules/accessibility")(highcharts);
@@ -23,21 +35,28 @@ export default {
   components: {
     BlockChart,
     HighChart,
+    TimeFrame,
   },
   name: "funding-rounds-by-investor-and-category",
   props: {
     api_res_data: { type: Array },
   },
   data: () => ({
+    data: [],
     web3: {
       name: "Web3",
       data: [],
-      color: "rgb(97, 100, 255)",
+      color: "#7c7cf4",
     },
     nfts: {
       name: "NFTs",
       data: [],
-      color: "#6495ED",
+      color: "#7F00FF",
+    },
+    gamefi: {
+      name: "GameFi",
+      data: [],
+      color: "#DA70D6",
     },
     defi: {
       name: "DeFi",
@@ -47,12 +66,27 @@ export default {
     cefi: {
       name: "CeFi",
       data: [],
-      color: "#DA70D6",
+      color: "#01bbbb",
+    },
+    blockchain: {
+      name: "Blockchain Service",
+      data: [],
+      color: "#6495ED",
     },
     infrastructure: {
       name: "Infrastructure",
       data: [],
-      color: "rgb(145, 232, 225)",
+      color: "#3dca3d",
+    },
+    currency: {
+      name: "Currency",
+      data: [],
+      color: "#aecbfa",
+    },
+    social: {
+      name: "Social",
+      data: [],
+      color: "rgb(234 179 8)",
     },
     seriesOptions: [],
     loading: true,
@@ -60,11 +94,20 @@ export default {
     legendY: 0,
     verticalAlign: "top",
     maxTotal: null,
+    time_frame: ["1m", "3m", "6m", "1y", "2y", "YTD", "All"],
+    time: "all",
   }),
   watch: {
     api_res_data: {
       handler() {
         this.init();
+      },
+    },
+    time: {
+      async handler() {
+        this.loading = true;
+        await this.setDataChart();
+        this.loading = false;
       },
     },
   },
@@ -77,12 +120,6 @@ export default {
         },
         title: {
           text: null,
-          // style: {
-          //   color: "transparent",
-          //   fontSize: "20px",
-          //   fontWeight: "bold",
-          // },
-          // align: "left",
         },
         xAxis: {
           title: null,
@@ -123,7 +160,12 @@ export default {
               return this.total;
             },
           },
-          title: null,
+          title: {
+            text: "Number of Funding Rounds",
+            style: {
+              fontWeight: 600,
+            },
+          },
           opposite: false,
           //   tickAmount: 5,
           showLastLabel: true,
@@ -210,18 +252,45 @@ export default {
       }
     },
     async fetchData() {
+      this.data = this.api_res_data;
       this.setDataChart();
     },
     async setDataChart() {
-      const res_data = this.api_res_data;
-      let data = res_data.filter((x) => x.round);
+      let data = this.data.filter((x) => x.round);
+      let now = moment(new Date().getTime());
+      let time = null;
+      if (this.time == "1m")
+        time = new Date(
+          Date.UTC(now.year(), now.month() - 1, now.date(), 0, 0, 0)
+        ).getTime();
+      if (this.time == "3m")
+        time = new Date(
+          Date.UTC(now.year(), now.month() - 3, now.date(), 0, 0, 0)
+        ).getTime();
+      if (this.time == "6m")
+        time = new Date(
+          Date.UTC(now.year(), now.month() - 6, now.date(), 0, 0, 0)
+        ).getTime();
+      if (this.time == "1y")
+        time = new Date(
+          Date.UTC(now.year() - 1, now.month(), now.date(), 0, 0, 0)
+        ).getTime();
+      if (this.time == "2y")
+        time = new Date(
+          Date.UTC(now.year() - 2, now.month(), now.date(), 0, 0, 0)
+        ).getTime();
+      if (this.time == "ytd")
+        time = new Date(Date.UTC(now.year(), 0, 1, 0, 0, 0)).getTime();
+      if (this.time == "all") time = new Date(time).getTime();
+      data = data.filter((v) => !(v.date < time));
       let investorsArr = [
         "Animoca Brands",
         "Coinbase Ventures",
         "Alameda Research",
+        // "FTX Ventures",
         "Shima Capital",
         "Spartan Group",
-        "Andreessen Horowitz",
+        "a16z",
         "GSR",
         "Dragonfly Capital",
         "LD Capital",
@@ -251,7 +320,11 @@ export default {
         (this.cefi.data = []),
         (this.nfts.data = []),
         (this.infrastructure.data = []),
-        (this.web3.data = []);
+        (this.web3.data = []),
+        (this.gamefi.data = []),
+        (this.blockchain.data = []),
+        (this.currency.data = []),
+        (this.social.data = []);
       investorsArr.forEach((item) => {
         this.defi.data.push({
           name: item,
@@ -261,7 +334,10 @@ export default {
                 x.leadInvestors
                   .concat(x.otherInvestors)
                   .join(", ")
-                  .includes(item) && x.category == "DeFi"
+                  .includes(item) &&
+                ["dex", "defi", "dao infrastructure"].some((v) =>
+                  x.category.toLowerCase().includes(v)
+                )
               );
             }
             return (
@@ -291,7 +367,10 @@ export default {
                 x.leadInvestors
                   .concat(x.otherInvestors)
                   .join(", ")
-                  .includes(item) && x.category == "CeFi"
+                  .includes(item) &&
+                ["cex", "cefi", "cefi yield", "centralized exchange"].some(
+                  (v) => x.category.toLowerCase().includes(v)
+                )
               );
             }
             return (
@@ -332,7 +411,14 @@ export default {
                 x.leadInvestors
                   .concat(x.otherInvestors)
                   .join(", ")
-                  .includes(item) && x.category == "Infrastructure"
+                  .includes(item) &&
+                [
+                  "l1",
+                  "l2",
+                  "infrastructure",
+                  "smart contract platform",
+                  "zero knowledge industry",
+                ].includes(x.category.toLowerCase())
               );
             }
             return (
@@ -363,127 +449,124 @@ export default {
             );
           }).length,
         });
+        this.gamefi.data.push({
+          name: item,
+          y: data.filter((x) => {
+            if (x.category != null) {
+              return (
+                x.leadInvestors
+                  .concat(x.otherInvestors)
+                  .join(", ")
+                  .includes(item) &&
+                ["gaming", "game", "metaverse"].includes(
+                  x.category.toLowerCase()
+                )
+              );
+            }
+            return (
+              x.leadInvestors
+                .concat(x.otherInvestors)
+                .join(", ")
+                .includes(item) && x.sector?.includes("play")
+            );
+          }).length,
+        });
+        this.blockchain.data.push({
+          name: item,
+          y: data.filter((x) => {
+            if (x.category != null) {
+              return (
+                x.leadInvestors
+                  .concat(x.otherInvestors)
+                  .join(", ")
+                  .includes(item) &&
+                [
+                  "blockchain-as-a-service",
+                  "cloud intelligence",
+                  "custody",
+                  "cybersecurity",
+                  "information security",
+                  "information services digital assets",
+                  "iot",
+                  "mev",
+                  "mining",
+                  "scaling solution",
+                  "smart contract audits",
+                  "smart contract security",
+                  "storage",
+                ].includes(x.category.toLowerCase())
+              );
+            }
+            return (
+              x.leadInvestors
+                .concat(x.otherInvestors)
+                .join(", ")
+                .includes(item) &&
+              [
+                "sass",
+                "data",
+                "analytics",
+                "management",
+                "solution",
+                "solutions",
+              ].some((v) => x.sector?.toLowerCase().includes(v))
+            );
+          }).length,
+        });
+        this.currency.data.push({
+          name: item,
+          y: data.filter((x) => {
+            if (x.category != null) {
+              return (
+                x.leadInvestors
+                  .concat(x.otherInvestors)
+                  .join(", ")
+                  .includes(item) && x.category == "Payments"
+              );
+            }
+            return (
+              x.leadInvestors
+                .concat(x.otherInvestors)
+                .join(", ")
+                .includes(item) && x.sector?.toLowerCase().includes("fiat")
+            );
+          }).length,
+        });
+        this.social.data.push({
+          name: item,
+          y: data.filter((x) => {
+            if (x.category != null) {
+              return (
+                x.leadInvestors
+                  .concat(x.otherInvestors)
+                  .join(", ")
+                  .includes(item) && x.category == "Social Platform"
+              );
+            }
+            return (
+              x.leadInvestors
+                .concat(x.otherInvestors)
+                .join(", ")
+                .includes(item) &&
+              ["social", "network"].some((v) =>
+                x.sector?.toLowerCase().includes(v)
+              )
+            );
+          }).length,
+        });
       });
       this.seriesOptions = [
-        this.nfts,
+        this.social,
+        this.currency,
         this.web3,
+        this.nfts,
+        this.gamefi,
         this.defi,
-        this.infrastructure,
         this.cefi,
+        this.blockchain,
+        this.infrastructure,
       ];
     },
-
-    // mapCategory(e) {
-    //   e = e.map((v) => {
-    //     if (
-    //       v.categoryArr.includes("L1") ||
-    //       v.categoryArr.includes("L2") ||
-    //       v.categoryArr.includes("Infrastructure") ||
-    //       v.categoryArr.includes("Smart Contract Platform") ||
-    //       v.categoryArr.includes("Zero Knowledge Industry")
-    //     ) {
-    //       v.category[0].count++;
-    //     }
-    //     if (
-    //       v.categoryArr.includes("Blockchain-as-a-Service") ||
-    //       v.categoryArr.includes("Cloud Intelligence") ||
-    //       v.categoryArr.includes("Custody") ||
-    //       v.categoryArr.includes("Cybersecurity") ||
-    //       v.categoryArr.includes("Information security") ||
-    //       v.categoryArr.includes("Information services digital assets") ||
-    //       v.categoryArr.includes("IoT") ||
-    //       v.categoryArr.includes("MEV") ||
-    //       v.categoryArr.includes("Mining") ||
-    //       v.categoryArr.includes("Scaling Solution") ||
-    //       v.categoryArr.includes("Smart contract audits") ||
-    //       v.categoryArr.includes("Smart contract security") ||
-    //       v.categoryArr.includes("Storage")
-    //     ) {
-    //       v.category[1].count++;
-    //     }
-    //     if (
-    //       v.categoryArr.includes("CEX") ||
-    //       v.categoryArr.includes("CeFi") ||
-    //       v.categoryArr.includes("CeFi Yield") ||
-    //       v.categoryArr.includes("Centralized Exchange")
-    //     ) {
-    //       v.category[2].count++;
-    //     }
-    //     if (
-    //       v.categoryArr.includes("DEX") ||
-    //       v.categoryArr.includes("DeFi") ||
-    //       v.categoryArr.includes("DAO Infrastructure")
-    //     ) {
-    //       v.category[3].count++;
-    //     }
-    //     if (
-    //       v.categoryArr.includes("Game") ||
-    //       v.categoryArr.includes("Gaming") ||
-    //       v.categoryArr.includes("Metaverse")
-    //     ) {
-    //       v.category[4].count++;
-    //     }
-    //     if (v.categoryArr.includes("NFT")) v.category[5].count++;
-    //     if (v.categoryArr.includes("Web3")) v.category[6].count++;
-    //     if (v.categoryArr.includes("Payments")) v.category[7].count++;
-    //     if (v.categoryArr.includes("Social Platform")) v.category[8].count++;
-    //     if (v.categoryArr.includes(null)) {
-    //       v.sectorArr.forEach((e) => {
-    //         if (
-    //           ["layer 1", "layer1", "dao"].some((x) =>
-    //             e?.toLowerCase().includes(x)
-    //           )
-    //         )
-    //           v.category[0].count++;
-    //         else if (
-    //           [
-    //             "sass",
-    //             "data",
-    //             "management",
-    //             "analytics",
-    //             "solution",
-    //             "solutions",
-    //           ].some((x) => e?.toLowerCase().includes(x))
-    //         )
-    //           v.category[1].count++;
-    //         else if (
-    //           ["market maker", "exchange"].some((x) => {
-    //             if (!e?.toLowerCase().includes("decentralized"))
-    //               return e?.toLowerCase().includes(x);
-    //           })
-    //         )
-    //           v.category[2].count++;
-    //         else if (
-    //           [
-    //             "decentralized",
-    //             "wallet",
-    //             "amm",
-    //             "liquidity",
-    //             "swap",
-    //             "leveraged",
-    //             "lending",
-    //             "borrowing",
-    //             "money",
-    //           ].some((x) => e?.toLowerCase().includes(x))
-    //         )
-    //           v.category[3].count++;
-    //         else if (["play"].some((x) => e?.toLowerCase().includes(x)))
-    //           v.category[4].count++;
-    //         else if (["web3"].some((x) => e?.toLowerCase().includes(x)))
-    //           v.category[5].count++;
-    //         else if (["nft"].some((x) => e?.toLowerCase().includes(x)))
-    //           v.category[5].count++;
-    //         else if (["fiat"].some((x) => e?.toLowerCase().includes(x)))
-    //           v.category[7].count++;
-    //         else if (
-    //           ["social", "network"].some((x) => e?.toLowerCase().includes(x))
-    //         )
-    //           v.category[8].count++;
-    //       });
-    //     }
-    //     return v;
-    //   });
-    // },
   },
 };
 </script>

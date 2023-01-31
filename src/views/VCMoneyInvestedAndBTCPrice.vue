@@ -7,6 +7,7 @@
           <TimeFrame
             class="relative z-[1] top-[4px]"
             :time_frame="time_frame"
+            :time_fetch="time"
             @set_time_frame="(v) => (time = v)"
           />
         </h2>
@@ -15,7 +16,7 @@
     <HighChart
       id="vc-money-invested-and-btc-price"
       :options="options"
-      height="556px"
+      height="600px"
       ref="highchart"
       isStockChart
     />
@@ -29,11 +30,17 @@ import { BTC_API } from "@/services/api";
 import BlockChart from "@/components/BlockChart.vue";
 import HighChart from "@/components/HighChart.vue";
 import TimeFrame from "@/components/TimeFrame.vue";
-let highcharts = require("highcharts");
-require("highcharts/highcharts-more")(highcharts);
-require("highcharts/modules/accessibility")(highcharts);
-require("highcharts/modules/exporting")(highcharts);
-// var groupingUnits = [["month", [1]]];
+let highchartStock = require("highcharts/highstock");
+require("highcharts/highcharts-more")(highchartStock);
+moment.updateLocale("en", {
+  week: {
+    dow: 1, // First day of week is Monday
+  },
+});
+// var groupingUnits = [
+//   ["day", [7]],
+//   ["month", [1, 3]],
+// ];
 export default {
   name: "vc-money-invested-and-btc-price",
   components: {
@@ -49,7 +56,7 @@ export default {
     btc_data: [],
     vc_money_invested: [],
     btc: [],
-    time_frame: ["Monthly", "Quarterly"],
+    time_frame: ["Weekly", "Monthly", "Quarterly"],
     time: "monthly",
     labelFormat: "{value:%b, %y}",
     symbol: {},
@@ -58,7 +65,7 @@ export default {
     functionFireChart: null,
     yCategories: [],
     seriesOptions: [],
-    legendX: -20,
+    legendX: 50,
     legendY: -10,
     verticalAlign: "top",
     tickInterval: 1 * 30 * 24 * 3600 * 1000,
@@ -106,6 +113,8 @@ export default {
             snap: false,
             dashStyle: "longdash",
           },
+          // tickAmount: 5,
+          // tickPixelInterval: 0,
           tickInterval: this.tickInterval,
         },
         yAxis: [
@@ -120,7 +129,12 @@ export default {
                 color: "rgb(156 163 175)",
               },
             },
-            title: null,
+            title: {
+              text: "VC Money Invested",
+              style: {
+                fontWeight: 600,
+              },
+            },
             opposite: false,
             tickAmount: 5,
             showLastLabel: true,
@@ -130,7 +144,12 @@ export default {
             gridLineColor: "#ffffff1f",
             // gridLineDashStyle: "longdash",
             gridLineWidth: 0,
-            title: null,
+            title: {
+              text: "BTC Price",
+              style: {
+                fontWeight: 600,
+              },
+            },
             labels: {
               formatter: function () {
                 return "$" + handlerPrice(this.value);
@@ -165,7 +184,7 @@ export default {
             color: "#fff",
             fontWeight: "bold",
           },
-          itemMarginBottom: 16,
+          itemMarginBottom: 8,
         },
         tooltip: {
           useHTML: true,
@@ -185,6 +204,12 @@ export default {
           headerFormat: null,
           pointFormatter: function () {
             let time = moment(this.x);
+            if (vm.time == "weekly") {
+              // time = "Week " + time.week() + ", " + time.year();
+              let startWeek = time.startOf("week").format("DD, MMM, YYYY");
+              let endWeek = time.endOf("week").format("DD, MMM, YYYY");
+              time = startWeek + " - " + endWeek;
+            }
             if (vm.time == "monthly") time = time.format("MMM, YYYY");
             if (vm.time == "quarterly")
               time =
@@ -192,13 +217,21 @@ export default {
                 (getQuarterFromMonth(time.month()) + 1) +
                 ", " +
                 time.year();
-            return `<div class="text-gray-500 font-semibold">${time}</div>
-            <div><span style="color:${this.series.color}">${
-              this.series.name
-            }</span>: <span class="font-semibold">$${handlerPrice(
-              this.y,
-              2
-            )}</span></div>`;
+            let content1 = `<div class="text-gray-500 font-semibold">${time}</div>
+            <div><span style="color:${this.series.color}">${this.series.name}</span>: `;
+            let content2 = null;
+            if (this.low) {
+              content2 = `<span class="font-semibold">$${handlerPrice(
+                this.low,
+                2
+              )} - $${handlerPrice(this.high, 2)}</span></div>`;
+            } else {
+              content2 = `<span class="font-semibold">$${handlerPrice(
+                this.y,
+                2
+              )}</span></div>`;
+            }
+            return content1 + content2;
           },
         },
         plotOptions: {
@@ -214,6 +247,7 @@ export default {
           series: {
             borderWidth: 0,
             groupPadding: 0.15,
+            fillOpacity: 0.4,
           },
         },
         series: this.seriesOptions,
@@ -228,17 +262,24 @@ export default {
         yAxis: 0,
         color: "rgb(97, 100, 255)",
         borderWidth: 0,
+        dataGrouping: {
+          // units: groupingUnits,
+          enabled: false,
+        },
       };
       let btc = {
-        name: "BTCUSDT",
+        name: "BTC Price",
         data: [],
-        type: "spline",
+        type: "arearange",
         color: "#f2ba2a",
         yAxis: 1,
         marker: {
           enabled: false,
         },
-        enableMouseTracking: false,
+        dataGrouping: {
+          // units: groupingUnits,
+          enabled: false,
+        },
       };
       try {
         this.loading = true;
@@ -270,6 +311,12 @@ export default {
       ) {
         let timestamp = moment(currentValue.date);
         let time = null;
+        if (vm.time == "weekly") {
+          time = timestamp.startOf("week").unix() * 1000 + 7 * 3600 * 1000;
+          console.log(
+            moment(new Date(2022, 0, 3, 7, 0, 0).getTime()).startOf("week")
+          );
+        }
         if (vm.time == "monthly") {
           time = new Date(
             Date.UTC(timestamp.year(), timestamp.month(), 1, 0, 0, 0)
@@ -303,6 +350,9 @@ export default {
       result = this.btc_data.reduce(function (accumulator, currentValue) {
         let timestamp = moment(currentValue.period);
         let time = null;
+        if (vm.time == "weekly") {
+          time = timestamp.startOf("week").unix() * 1000 + 7 * 3600 * 1000;
+        }
         if (vm.time == "monthly") {
           time = new Date(
             Date.UTC(timestamp.year(), timestamp.month(), 1, 0, 0, 0)
@@ -317,15 +367,22 @@ export default {
         if (!accumulator[time]) {
           accumulator[time] = {
             time: time,
-            btc_price: 0,
+            btc_price: null,
+            btc_low: null,
           };
           result.push([accumulator[time]]);
         }
-        if (accumulator[time].price == 0)
+        if (!accumulator[time].btc_price)
           accumulator[time].btc_price = Number(currentValue.high);
         else {
           if (accumulator[time].btc_price < Number(currentValue.high))
             accumulator[time].btc_price = Number(currentValue.high);
+        }
+        if (!accumulator[time].btc_low)
+          accumulator[time].btc_low = Number(currentValue.low);
+        else {
+          if (accumulator[time].btc_low > Number(currentValue.low))
+            accumulator[time].btc_low = Number(currentValue.low);
         }
         return accumulator;
       }, {});
@@ -346,15 +403,23 @@ export default {
         yAxis: 0,
         color: "rgb(97, 100, 255)",
         borderWidth: 0,
+        dataGrouping: {
+          // units: groupingUnits,
+          enabled: false,
+        },
       };
       let btc = {
-        name: "BTCUSDT",
+        name: "BTC Price",
         data: [],
-        type: "spline",
+        type: "arearange",
         // lineWidth: 1,
         color: "#f2ba2a",
         yAxis: 1,
         marker: {
+          enabled: false,
+        },
+        dataGrouping: {
+          // units: groupingUnits,
           enabled: false,
         },
       };
@@ -362,25 +427,23 @@ export default {
         let index = this.vc_money_invested.findIndex(
           (x) => x.time == item.time
         );
-        if (index != -1)
+        if (index != -1) {
           this.vc_money_invested[index].btc_price = item.btc_price;
+          this.vc_money_invested[index].btc_low = item.btc_low;
+        }
       });
 
       amount.data = this.vc_money_invested.map((v) => {
-        return {
-          x: v.time,
-          y: v.amount * 1000000,
-          custom: {
-            time: v.time,
-            amount: v.amount * 1000000,
-            btc_price: v.btc_price,
-          },
-        };
+        return [v.time, v.amount * 1000000];
       });
       btc.data = this.btc.map((v) => {
-        return [v.time, v.btc_price];
+        return [v.time, v.btc_low, v.btc_price];
       });
       this.seriesOptions = [amount, btc];
+      if (this.time == "weekly") {
+        this.labelFormat = "{value:W%w, %y}";
+        this.tickInterval = 7 * 24 * 3600 * 1000;
+      }
       if (this.time == "monthly") {
         this.labelFormat = "{value:%b, %y}";
         this.tickInterval = 1 * 30 * 24 * 3600 * 1000;

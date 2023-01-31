@@ -8,12 +8,10 @@
       :key="item.id"
       class="w-[50px] ml-[4px] py-[4px] rounded-lg bg-black"
       :class="[
-        time_fetch == item.toString().toLowerCase()
-          ? 'activeBtn'
-          : 'disableBtn',
+        time == item.toString().toLowerCase() ? 'activeBtn' : 'disableBtn',
       ]"
       :disabled="disabled"
-      @click="time_fetch = item.toString().toLowerCase()"
+      @click="time = item.toString().toLowerCase()"
     >
       {{ item }}
     </button>
@@ -24,12 +22,10 @@
       :key="item.id"
       class="w-[70px] ml-[4px] py-[2px] rounded-lg"
       :class="[
-        time_fetch == item.toString().toLowerCase()
-          ? 'activeBtn'
-          : 'disableBtn',
+        time == item.toString().toLowerCase() ? 'activeBtn' : 'disableBtn',
       ]"
       :disabled="disabled"
-      @click="time_fetch = item.toString().toLowerCase()"
+      @click="time = item.toString().toLowerCase()"
     >
       {{ item }}
     </button>
@@ -41,15 +37,15 @@ export default {
   props: {
     time_frame: { type: Array },
     disabled: { type: Boolean },
+    time_fetch: { type: String },
   },
   data: (vm) => ({
-    time_fetch: vm.time_frame[0].toString().toLowerCase(),
+    time: vm.time_fetch,
   }),
   watch: {
-    time_fetch: {
+    time: {
       handler() {
-        // console.log(this.time_fetch);
-        this.$emit("set_time_frame", this.time_fetch);
+        this.$emit("set_time_frame", this.time);
       },
     },
   },
