@@ -1,11 +1,23 @@
 <template>
-  <BlockChart title="Most Active Funds" :loading="loading">
+  <BlockChart :loading="loading">
+    <template #title>
+      <div class="w-full">
+        <h2 class="text-white font-bold text-[20px]">
+          Most Active Funds
+          <TimeFrame
+            class="relative z-[1] top-[4px]"
+            :time_frame="time_frame"
+            :time_fetch="time"
+            @set_time_frame="(v) => (time = v)"
+          />
+        </h2>
+      </div>
+    </template>
     <HighChart
       id="most-active-funds"
       :options="options"
       height="600px"
       ref="highchart"
-      isStockChart
     />
   </BlockChart>
 </template>
@@ -14,6 +26,7 @@
 import moment from "moment";
 import BlockChart from "@/components/BlockChart.vue";
 import HighChart from "@/components/HighChart.vue";
+import TimeFrame from "@/components/TimeFrame.vue";
 import { roundValue } from "@/ultis";
 let highcharts = require("highcharts");
 require("highcharts/highcharts-more")(highcharts);
@@ -36,6 +49,7 @@ export default {
   components: {
     BlockChart,
     HighChart,
+    TimeFrame,
   },
   props: {
     api_res_data: { type: Array },
@@ -46,7 +60,7 @@ export default {
     functionFireChart: null,
     seriesOptions: [],
     legendX: 0,
-    legendY: -25,
+    legendY: 0,
     verticalAlign: "top",
     labelFormat: "{value:%b, %y}",
     tickInterval: 30 * 24 * 3600 * 1000,
@@ -55,11 +69,20 @@ export default {
     buttonPositionX: 0,
     buttonPositionY: -8,
     buttonPositionAlign: "right",
+    time_frame: ["6m", "1y", "2y", "YTD", "All"],
+    time: "6m",
   }),
   watch: {
     api_res_data: {
       handler() {
         this.init();
+      },
+    },
+    time: {
+      async handler() {
+        this.loading = true;
+        await this.setDataChart();
+        this.loading = false;
       },
     },
   },
@@ -70,15 +93,15 @@ export default {
           backgroundColor: "#2e2e33",
           type: "bubble",
           zoomType: "xy",
-          events: {
-            load() {
-              const chart = this,
-                startDate = vm.startDate,
-                endDate = vm.endDate;
+          // events: {
+          //   load() {
+          //     const chart = this,
+          //       startDate = vm.startDate,
+          //       endDate = vm.endDate;
 
-              chart.xAxis[0].setExtremes(startDate, endDate);
-            },
-          },
+          //     chart.xAxis[0].setExtremes(startDate, endDate);
+          //   },
+          // },
         },
         rangeSelector: {
           inputEnabled: false,
@@ -244,12 +267,6 @@ export default {
           },
         },
         series: this.seriesOptions,
-        navigator: {
-          enabled: false,
-        },
-        scrollbar: {
-          enabled: false,
-        },
       };
     },
   },
@@ -311,223 +328,61 @@ export default {
       result = result.sort((a, b) => a.time - b.time);
       this.data = result;
     },
-    setDataChart() {
+
+    async setDataChart() {
       let data = this.data;
+      this.seriesOptions = [];
+      let investors = [];
+      let time = null;
+      let now = moment(new Date().getTime());
+      if (this.time == "6m")
+        time = new Date(
+          Date.UTC(now.year(), now.month() - 6, 1, 0, 0, 0)
+        ).getTime();
+      if (this.time == "1y")
+        time = new Date(
+          Date.UTC(now.year() - 1, now.month(), 1, 0, 0, 0)
+        ).getTime();
+      if (this.time == "2y")
+        time = new Date(
+          Date.UTC(now.year() - 2, now.month(), 1, 0, 0, 0)
+        ).getTime();
+      if (this.time == "ytd")
+        time = new Date(Date.UTC(now.year(), 0, 1, 0, 0, 0)).getTime();
+      if (this.time == "all") time = new Date(time).getTime();
+      data = data.filter((x) => !(x.time < time));
       data.forEach((item) => {
-        item.investorDeals = item.investorDeals.filter(
-          (v) =>
-            v.name.includes("Spartan Group") ||
-            v.name.includes("Animoca Brands") ||
-            v.name.includes("Alameda Research") ||
-            v.name.includes("Coinbase Ventures") ||
-            v.name.includes("LD Capital") ||
-            v.name.includes("Infinity Ventures") ||
-            v.name.includes("Hashed") ||
-            v.name.includes("a16z") ||
-            v.name.includes("Shima Capital") ||
-            v.name.includes("Hashkey Capital")
-        );
+        investors = investors.concat(item.investor);
       });
-      data = data.map(({ investor, ...rest }) => ({ ...rest }));
-      this.endDate = data[data.length - 1].time + 15 * 24 * 3600 * 1000;
-      let time = moment(this.endDate);
-      this.startDate = new Date(
-        Date.UTC(time.year(), time.month() - 6, time.date(), 0, 0, 0)
-      ).getTime();
-      let spartan_group = {
-        name: "Spartan Group",
-        data: [],
-        color: pieColors[0],
-      };
-      let animoca_brands = {
-        name: "Animoca Brands",
-        data: [],
-        color: pieColors[1],
-      };
-      let alameda_research = {
-        name: "Alameda Research",
-        data: [],
-        color: pieColors[2],
-      };
-      let coinbase_ventures = {
-        name: "Coinbase Ventures",
-        data: [],
-        color: pieColors[3],
-      };
-      let ld_capital = {
-        name: "LD Capital",
-        data: [],
-        color: pieColors[4],
-      };
-      let infinity_ventures = {
-        name: "Infinity Ventures",
-        data: [],
-        color: pieColors[5],
-      };
-      let hashed = {
-        name: "Hashed",
-        data: [],
-        color: pieColors[6],
-      };
-      let a16z = {
-        name: "a16z",
-        data: [],
-        color: pieColors[7],
-      };
-      let shima_capital = {
-        name: "Shima Capital",
-        data: [],
-        color: pieColors[8],
-      };
-      let hashkey_capital = {
-        name: "Hashkey Capital",
-        data: [],
-        color: pieColors[9],
-      };
-      spartan_group.data = data.map((v) => {
-        let index = v.investorDeals.findIndex((x) =>
-          x.name.includes("Spartan Group")
-        );
-        if (index != -1)
-          return [
-            v.time,
-            v.investorDeals[index].deals,
-            v.investorDeals[index].deals,
-          ];
+      let investorDeals = [];
+      for (const investor of investors) {
+        let index = investorDeals.findIndex((x) => x.name == investor);
+        if (index == -1) investorDeals.push({ name: investor, deals: 1 });
+        else investorDeals[index].deals++;
+      }
+      investorDeals = investorDeals.sort((a, b) => b.deals - a.deals);
+      investorDeals = investorDeals.slice(0, 10);
+      let dataSeries = [];
+      let i = 0;
+      investorDeals.forEach((item) => {
+        dataSeries.push({ name: item.name, data: [], color: pieColors[i] });
+        i++;
       });
-      spartan_group.data = spartan_group.data.filter((x) => x);
-
-      //trick to display last label
-      spartan_group.data.push([
-        data[data.length - 1].time + 15 * 24 * 3600 * 1000,
-        null,
-        null,
-      ]);
-
-      animoca_brands.data = data.map((v) => {
-        let index = v.investorDeals.findIndex((x) =>
-          x.name.includes("Animoca Brands")
-        );
-        if (index != -1)
-          return [
-            v.time,
-            v.investorDeals[index].deals,
-            v.investorDeals[index].deals,
-          ];
+      dataSeries.forEach((item) => {
+        item.data = data.map((v) => {
+          let index = v.investorDeals.findIndex((x) => x.name == item.name);
+          if (index != -1)
+            return [
+              v.time,
+              v.investorDeals[index].deals,
+              v.investorDeals[index].deals,
+            ];
+        });
+        item.data = item.data.filter((x) => x);
       });
-      animoca_brands.data = animoca_brands.data.filter((x) => x);
-
-      alameda_research.data = data.map((v) => {
-        let index = v.investorDeals.findIndex((x) =>
-          x.name.includes("Alameda Research")
-        );
-        if (index != -1)
-          return [
-            v.time,
-            v.investorDeals[index].deals,
-            v.investorDeals[index].deals,
-          ];
+      dataSeries.forEach((item) => {
+        this.seriesOptions.push(item);
       });
-      alameda_research.data = alameda_research.data.filter((x) => x);
-
-      coinbase_ventures.data = data.map((v) => {
-        let index = v.investorDeals.findIndex((x) =>
-          x.name.includes("Coinbase Ventures")
-        );
-        if (index != -1)
-          return [
-            v.time,
-            v.investorDeals[index].deals,
-            v.investorDeals[index].deals,
-          ];
-      });
-      coinbase_ventures.data = coinbase_ventures.data.filter((x) => x);
-
-      ld_capital.data = data.map((v) => {
-        let index = v.investorDeals.findIndex((x) =>
-          x.name.includes("LD Capital")
-        );
-        if (index != -1)
-          return [
-            v.time,
-            v.investorDeals[index].deals,
-            v.investorDeals[index].deals,
-          ];
-      });
-      ld_capital.data = ld_capital.data.filter((x) => x);
-
-      infinity_ventures.data = data.map((v) => {
-        let index = v.investorDeals.findIndex((x) =>
-          x.name.includes("Infinity Ventures")
-        );
-        if (index != -1)
-          return [
-            v.time,
-            v.investorDeals[index].deals,
-            v.investorDeals[index].deals,
-          ];
-      });
-      infinity_ventures.data = infinity_ventures.data.filter((x) => x);
-
-      hashed.data = data.map((v) => {
-        let index = v.investorDeals.findIndex((x) => x.name.includes("Hashed"));
-        if (index != -1)
-          return [
-            v.time,
-            v.investorDeals[index].deals,
-            v.investorDeals[index].deals,
-          ];
-      });
-      hashed.data = hashed.data.filter((x) => x);
-
-      a16z.data = data.map((v) => {
-        let index = v.investorDeals.findIndex((x) => x.name.includes("a16z"));
-        if (index != -1)
-          return [
-            v.time,
-            v.investorDeals[index].deals,
-            v.investorDeals[index].deals,
-          ];
-      });
-      a16z.data = a16z.data.filter((x) => x);
-
-      shima_capital.data = data.map((v) => {
-        let index = v.investorDeals.findIndex((x) =>
-          x.name.includes("Shima Capital")
-        );
-        if (index != -1)
-          return [
-            v.time,
-            v.investorDeals[index].deals,
-            v.investorDeals[index].deals,
-          ];
-      });
-      shima_capital.data = shima_capital.data.filter((x) => x);
-
-      hashkey_capital.data = data.map((v) => {
-        let index = v.investorDeals.findIndex((x) =>
-          x.name.includes("Hashkey Capital")
-        );
-        if (index != -1)
-          return [
-            v.time,
-            v.investorDeals[index].deals,
-            v.investorDeals[index].deals,
-          ];
-      });
-      hashkey_capital.data = hashkey_capital.data.filter((x) => x);
-      this.seriesOptions = [
-        spartan_group,
-        animoca_brands,
-        alameda_research,
-        coinbase_ventures,
-        ld_capital,
-        infinity_ventures,
-        hashed,
-        a16z,
-        shima_capital,
-        hashkey_capital,
-      ];
     },
   },
 };
