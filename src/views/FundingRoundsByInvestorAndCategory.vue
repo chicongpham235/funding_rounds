@@ -297,7 +297,7 @@ export default {
         "Skyvision Capital",
         "Jump Capital",
         "Hashkey Capital",
-        "Digital Currency Group",
+        "DCG",
         "ZBS CAPITAL",
         "Infinity Ventures Crypto",
         "Hashed",

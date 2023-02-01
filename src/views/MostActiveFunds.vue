@@ -253,6 +253,7 @@ export default {
         },
         plotOptions: {
           bubble: {
+            stacking: "normnal",
             minSize: 30,
             maxSize: 80,
             marker: {
